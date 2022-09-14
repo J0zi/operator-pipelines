@@ -32,9 +32,14 @@ def setup_argparser() -> argparse.ArgumentParser:  # pragma: no cover
         help="List of indices the bundle supports, e.g --indices registry/index:v4.9 registry/index:v4.8",
     )
     parser.add_argument(
-        "--output",
+        "--digest-output",
         default="manifest-digests.txt",
         help="File name to output comma-separated list of manifest digests to.",
+    )
+    parser.add_argument(
+        "--image-output",
+        default="temp-index-image-paths.txt",
+        help="File name to output comma-separated list of temporary location of the unpublished index images built by IIB.",
     )
     parser.add_argument(
         "--iib-url",
@@ -100,7 +105,8 @@ def publish_bundle(
     bundle_pullspec: str,
     iib_url: str,
     indices: List[str],
-    output: str,
+    digest_output: str,
+    image_output: str,
 ) -> None:
     """
     Publish a bundle to index image using IIB
@@ -110,13 +116,11 @@ def publish_bundle(
         bundle_pullspec: bundle pullspec
         from_index: target index pullspec
         indices: list of original indices
-        output: file name to output resulting manifest digests to
+        digest_output: file name to output resulting manifest digests to
+        image_output: file name to output the location of the newly built images to
     Raises:
         Exception: Exception is raised when IIB build fails
     """
-
-    user = os.getenv("QUAY_USER")
-    token = os.getenv("QUAY_TOKEN")
 
     payload = {"build_requests": []}
 
@@ -126,9 +130,7 @@ def publish_bundle(
             {
                 "from_index": f"{from_index}:{version}",
                 "bundles": [bundle_pullspec],
-                "overwrite_from_index": True,
                 "add_arches": ["amd64", "s390x", "ppc64le"],
-                "overwrite_from_index_token": f"{user}:{token}",
             }
         )
 
@@ -141,18 +143,30 @@ def publish_bundle(
     ):
         raise Exception("IIB build failed")
     else:
-        extract_manifest_digests(indices, index_versions, output, response)
+        extract_manifest_digests(
+            indices, index_versions, digest_output, image_output, response
+        )
 
 
 def extract_manifest_digests(
     indices: List[str],
     index_versions: List[str],
-    output: str,
+    digest_output: str,
+    image_output: str,
     response: Dict[str, Any],
 ):
-
+    """
+    Extract the manifest digests and temporary locations of the newly built images.
+    Args:
+        indices: list of original indices
+        index_versions: list of the index versions involved
+        digest_output: file name to output resulting manifest digests to
+        image_output: file name to output the location of the newly built images to
+        response: Response from IIB after the build is finished
+    """
     LOGGER.info("Extracting manifest digests for signing...")
     manifest_digests = []
+    temp_images = []
     # go through each version to ensure order is the same as the indices list
     for i in range(0, len(index_versions)):
         index = indices[i]
@@ -160,10 +174,19 @@ def extract_manifest_digests(
         for build in response["items"]:
             if build["index_image"].endswith(version):
                 digest = build["index_image_resolved"].split("@")[-1]
+                # The original from_index is still used for signing
                 manifest_digests.append(f"{index}@{digest}")
-    with open(output, "w") as f:
+                # The temp image location returned by IIB is saved for copying to
+                # published repos after signing
+                temp_images.append(build["index_image"])
+
+    with open(digest_output, "w") as f:
         f.write(",".join(manifest_digests))
-    LOGGER.info(f"Manifest digests written to output file {output}.")
+    LOGGER.info(f"Manifest digests written to output file {digest_output}.")
+
+    with open(image_output, "w") as f:
+        f.write(",".join(temp_images))
+    LOGGER.info(f"Temporary image paths written to output file {image_output}.")
 
 
 def parse_indices(indices: List[str]) -> List[str]:
@@ -207,7 +230,8 @@ def main() -> None:  # pragma: no cover
         args.bundle_pullspec,
         args.iib_url,
         args.indices,
-        args.output,
+        args.digest_output,
+        args.image_output,
     )
 
 

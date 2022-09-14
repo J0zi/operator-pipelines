@@ -438,8 +438,8 @@ spec:
         - name: connect_registry
           value: "$(tasks.set-env.results.connect_registry)"
 
-    # call IIB to publish the bundle
-    - name: publish-bundle
+    # call IIB to build the bundle
+    - name: build-bundle
       runAfter:
         - publish-resources
         - get-supported-versions
@@ -449,7 +449,7 @@ spec:
           values:
             - undistributed
       taskRef:
-        name: publish-bundle
+        name: build-bundle
       params:
         - name: pipeline_image
           value: "$(params.pipeline_image)"
@@ -471,7 +471,7 @@ spec:
     # use manifest list digests from IIB output and get the manifest digests from registry
     - name: get-manifest-digests
       runAfter:
-        - publish-bundle
+        - build-bundle
       when: *whenNotUndistributed
       taskRef:
         name: get-manifest-digests
@@ -479,7 +479,7 @@ spec:
         - name: pipeline_image
           value: "$(params.pipeline_image)"
         - name: manifest_list_digests
-          value: "$(tasks.publish-bundle.results.manifest_list_digests)"
+          value: "$(tasks.build-bundle.results.manifest_list_digests)"
         - name: environment
           value: "$(params.env)"
       workspaces:
@@ -550,6 +550,18 @@ spec:
         - name: source
           workspace: repository
           subPath: signing
+
+    - name: publish-index
+      runAfter:
+        - upload-signature
+      when: *whenNotUndistributed
+      taskRef:
+        name: publish-index
+      params:
+        - name: src_image_list
+          value: "$(tasks.build-bundle.results.temp_index_image_paths)"
+        - name: dest_image_list
+          value: "$(tasks.get-supported-versions.results.indices)"
 
 
   finally:

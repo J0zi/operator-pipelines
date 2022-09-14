@@ -1,0 +1,30 @@
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: publish-index
+spec:
+  params:
+    - name: skopeo_image
+      description: Skopeo image
+      default: "registry.redhat.io/rhel8/skopeo:8.4-13"
+    - name: src_image_list
+      description: comma-separate list of paths to the source images
+    - name: dest_image_list
+      description: comma-separate list of paths to the dest images
+  workspaces:
+    - name: dest-registry-credentials
+      description: Docker config for the destination registry
+  steps:
+    - name: skopeo-copy
+      image: "$(params.skopeo_image)"
+      script: |
+        set -xe
+
+        echo $(params.src_image_list)
+        echo $(params.dest_image_list)
+#        skopeo copy \
+#          --src-authfile $(workspaces.src-registry-credentials.path)/.dockerconfigjson \
+#          --dest-authfile $(workspaces.dest-registry-credentials.path)/.dockerconfigjson \
+#          docker://$(params.src_image) \
+#          docker://$(params.dest_image)

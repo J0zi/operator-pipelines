@@ -1,6 +1,6 @@
 from functools import partial
 from unittest import mock
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock, patch, call
 
 import pytest
 
@@ -106,12 +106,14 @@ def test_publish_bundle(
         "redhat-isv/some-pullspec",
         "https://iib.engineering.redhat.com",
         ["registry/index:v4.9", "registry/index:v4.8"],
-        "test.txt",
+        "test-output.txt",
+        "test-image-path.txt",
     )
     mock_manifests.assert_called_once_with(
         ["registry/index:v4.9", "registry/index:v4.8"],
         ["v4.9", "v4.8"],
-        "test.txt",
+        "test-output.txt",
+        "test-image-path.txt",
         mock_results.return_value,
     )
     mock_parse_indices.assert_called_once_with(
@@ -129,14 +131,16 @@ def test_publish_bundle(
             "redhat-isv/some-pullspec",
             "https://iib.engineering.redhat.com",
             ["registry/index:v4.9", "registry/index:v4.8"],
-            "test.txt",
+            "test-output.txt",
+            "test-image-path.txt",
         )
 
 
 def test_extract_manifest_digests() -> None:
     indices = ["registry/index:v4.9", "registry/index:v4.8"]
     index_versions = ["v4.9", "v4.8"]
-    output = "test.txt"
+    digest_output = "test-output.txt"
+    image_output = "test-image-path.txt"
     response = {
         "items": [
             {
@@ -152,9 +156,17 @@ def test_extract_manifest_digests() -> None:
     mock_open = mock.mock_open()
 
     with mock.patch("builtins.open", mock_open):
-        index.extract_manifest_digests(indices, index_versions, output, response)
+        index.extract_manifest_digests(
+            indices, index_versions, digest_output, image_output, response
+        )
 
-    mock_open.assert_called_once_with("test.txt", "w")
-    mock_open.return_value.write.assert_called_once_with(
+    mock_open.assert_any_call("test-output.txt", "w")
+    mock_open.assert_any_call("test-image-path.txt", "w")
+
+    mock_open.return_value.write.assert_any_call(
         "registry/index:v4.9@sha256:5678,registry/index:v4.8@sha256:1234"
     )
+    mock_open.return_value.write.assert_any_call(
+        "registry.test/test:v4.9,registry.test/test:v4.8"
+    )
+

@@ -122,6 +122,9 @@ def publish_bundle(
         Exception: Exception is raised when IIB build fails
     """
 
+    user = os.getenv("QUAY_USER")
+    token = os.getenv("QUAY_TOKEN")
+
     payload = {"build_requests": []}
 
     index_versions = parse_indices(indices)
@@ -131,6 +134,7 @@ def publish_bundle(
                 "from_index": f"{from_index}:{version}",
                 "bundles": [bundle_pullspec],
                 "add_arches": ["amd64", "s390x", "ppc64le"],
+                "overwrite_from_index_token": f"{user}:{token}",
             }
         )
 

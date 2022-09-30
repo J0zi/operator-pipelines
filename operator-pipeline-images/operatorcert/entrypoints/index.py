@@ -134,7 +134,6 @@ def publish_bundle(
                 "from_index": f"{from_index}:{version}",
                 "bundles": [bundle_pullspec],
                 "add_arches": ["amd64", "s390x", "ppc64le"],
-                "overwrite_from_index_token": f"{user}:{token}",
             }
         )
 

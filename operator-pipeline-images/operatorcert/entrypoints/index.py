@@ -122,16 +122,12 @@ def publish_bundle(
         Exception: Exception is raised when IIB build fails
     """
 
-    user = os.getenv("QUAY_USER")
-    token = os.getenv("QUAY_TOKEN")
-
     payload = {"build_requests": []}
 
-    index_versions = parse_indices(indices)
-    for version in index_versions:
+    for index in indices:
         payload["build_requests"].append(
             {
-                "from_index": f"{from_index}:{version}",
+                "from_index": index,
                 "bundles": [bundle_pullspec],
                 "add_arches": ["amd64", "s390x", "ppc64le"],
             }
@@ -146,6 +142,7 @@ def publish_bundle(
     ):
         raise Exception("IIB build failed")
     else:
+        index_versions = parse_indices(indices)
         extract_manifest_digests(
             indices, index_versions, digest_output, image_output, response
         )

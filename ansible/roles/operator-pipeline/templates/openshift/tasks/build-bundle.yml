@@ -39,16 +39,16 @@ spec:
     - name: build-bundle
       image: "$(params.pipeline_image)"
       env:
-        - name: QUAY_USER
-          valueFrom:
-            secretKeyRef:
-              name: iib-quay-credentials
-              key: username
-        - name: QUAY_TOKEN
-          valueFrom:
-            secretKeyRef:
-              name: iib-quay-credentials
-              key: password
+#        - name: QUAY_USER
+#          valueFrom:
+#            secretKeyRef:
+#              name: iib-quay-credentials
+#              key: username
+#        - name: QUAY_TOKEN
+#          valueFrom:
+#            secretKeyRef:
+#              name: iib-quay-credentials
+#              key: password
         - name: KRB_KEYTAB_FILE
           value: "/etc/kerberos/$(params.kerberos_keytab_secret_key)"
         - name: DIST_METHOD

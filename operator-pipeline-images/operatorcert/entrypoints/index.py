@@ -168,17 +168,26 @@ def extract_manifest_digests(
     manifest_digests = []
     temp_images = []
     # go through each version to ensure order is the same as the indices list
-    for i in range(0, len(index_versions)):
-        index = indices[i]
-        version = index_versions[i]
-        for build in response["items"]:
-            if build["index_image"].endswith(version):
-                digest = build["index_image_resolved"].split("@")[-1]
-                # The original from_index is still used for signing
-                manifest_digests.append(f"{index}@{digest}")
-                # The temp image location returned by IIB is saved for copying to
-                # published repos after signing
-                temp_images.append(build["index_image"])
+    # for i in range(0, len(index_versions)):
+    #     index = indices[i]
+    #     version = index_versions[i]
+    #     for build in response["items"]:
+    #         if build["from_index"].endswith(version):
+    #             digest = build["index_image_resolved"].split("@")[-1]
+    #             # The original from_index is still used for signing
+    #             manifest_digests.append(f"{index}@{digest}")
+    #             # The temp image location returned by IIB is saved for copying to
+    #             # published repos after signing
+    #             temp_images.append(build["index_image"])
+
+    for build in response["items"]:
+        digest = build["index_image_resolved"].split("@")[-1]
+        # The original from_index is used for signing
+        from_index = build["from_index"]
+        manifest_digests.append(f"{from_index}@{digest}")
+        # The temp image location returned by IIB is saved for copying to
+        # published repos after signing
+        temp_images.append(build["index_image"])
 
     with open(digest_output, "w") as f:
         f.write(",".join(manifest_digests))

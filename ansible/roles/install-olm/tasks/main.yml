@@ -1,4 +1,6 @@
 ---
+# kubectl_binary/oc_binary get pods --all-namespace |grep olm-operator
+
 - name: "Uninstall OLM"
   ansible.builtin.command: "{{ op_bin_dir }}/{{ operator_sdk_binary }} olm uninstall --version {{ olm_version }} --timeout 5m0s"
   changed_when: true

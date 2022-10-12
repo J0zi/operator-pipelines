@@ -34,7 +34,23 @@
     - name: "Install kind cluster"
       include_role:
         name: install-kind-cluster
-      when: kind_cluster is undefined or kind_cluster|bool
+      when: kubeconfig is undefined or kubeconfig|length == 0
+      tags:
+        - clean
+        - install
+        - verify
+
+    - name: "Install OLM"
+      include_role:
+        name: install-olm
+      tags:
+        - clean
+        - install
+        - verify
+
+    - name: "Install Tekton"
+      include_role:
+        name: install-tekton
       tags:
         - clean
         - install

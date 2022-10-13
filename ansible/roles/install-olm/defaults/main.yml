@@ -2,6 +2,4 @@
 op_bin_dir: "{{ op_work_dir }}/bin"
 operator_sdk_binary: operator-sdk
 olm_version: v0.20.0
-kubectl_binary: "kubectl"
-oc_binary: "oc"
-cluster_binary: "{{ kubectl_binary }}"
+cluster_binary: "kubectl"

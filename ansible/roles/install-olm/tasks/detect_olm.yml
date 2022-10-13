@@ -4,18 +4,9 @@
     - debug:
         var: cluster_binary
 
-    - name: "Cluster binary detection"
-      ansible.builtin.include_tasks:
-        file: detect_cluster_binary.yml
-      loop:
-        - "{{ kubectl_binary }}"
-        - "{{ oc_binary }}"
-      when:
-        - cluster_binary in not defined
-
     - name: "Checking OLM presence"
       ansible.builtin.command: "{{ cluster_binary }} get pods --all-namespaces |grep olm-operator"
-      changed_when: true
+      failed_when: false
       register: io_olm_presence
 
     - name: "OLM is not needed"

@@ -1,0 +1,13 @@
+---
+- name: "Detection"
+  block:
+    - name: "Checking {{item}} presence"
+      ansible.builtin.command: "{{item}} version"
+      changed_when: true
+      register: io_cluster_binary_presence
+    - name: "{{ item }} is present"
+      ansible.builtin.set_fact:
+        cluster_binary: "{{ item }}"
+      when: io_cluster_binary_presence.rc == 0
+  tags:
+    - install

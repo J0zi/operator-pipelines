@@ -27,7 +27,6 @@ oc_binary: oc
 oc_version: 4.3.5
 operator_sdk_binary: operator-sdk
 operator_sdk_version: v1.18.1
-olm_version: v0.20.0
 tekton_pipeline_version: v0.34.1
 tekton_triggers_version: v0.19.1
 tekton_dashboard_version: v0.24.1

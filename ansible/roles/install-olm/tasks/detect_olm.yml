@@ -1,5 +1,5 @@
 ---
-- name: "Detection"
+- name: "OLM detection"
   block:
     - debug:
         var: cluster_binary

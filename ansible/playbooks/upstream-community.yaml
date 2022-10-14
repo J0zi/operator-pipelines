@@ -39,6 +39,7 @@
         - clean
         - install
         - verify
+        - kind-install
 
     - name: "Install OLM"
       include_role:

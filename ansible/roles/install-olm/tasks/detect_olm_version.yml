@@ -1,0 +1,19 @@
+---
+- name: "Find OLM operator name"
+  block:
+
+    - name: "Extract metadata"
+      ansible.builtin.set_fact:
+        iom_operator_metadata_name: "{{ item.metadata.name }}"
+
+    - debug:
+        var: iom_operator_metadata
+
+    - name: "When name contains 'olm-operator' then get full name"
+      ansible.builtin.set_fact:
+        iom_olm_operator_name: "{{ iom_operator_metadata_name }}"
+        iom_olm_operator_namespace: "{{ item.metadata.namespace }}"
+      when: iom_operator_metadata_name.startswith('olm-operator')
+
+  tags:
+    - install

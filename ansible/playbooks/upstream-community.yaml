@@ -16,6 +16,13 @@
     PATH: "{{ op_bin_dir }}:{{ ansible_env.PATH }}"
 
   tasks:
+    - name: Debug detection REMOVE
+      ansible.builtin.include_role:
+        name: install-olm
+        tasks_from: detect_olm
+      tags:
+        - always
+
     - name: "Upstream community base"
       import_role:
         name: upstream-community-base

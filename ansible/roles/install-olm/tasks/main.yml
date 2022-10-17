@@ -1,4 +1,5 @@
 ---
+#TODO: correct task order and fix conditions including installation one
 - name: "Uninstall OLM"
   ansible.builtin.command: "{{ op_bin_dir }}/{{ operator_sdk_binary }} olm uninstall --version {{ olm_version }} --timeout 5m0s"
   changed_when: true
@@ -13,9 +14,9 @@
       ansible.builtin.set_fact:
         olm_needed: true
 
-    # - name: "OLM detection"
-    #   ansible.builtin.include_tasks:
-    #     file: detect_olm.yml
+    - name: "OLM detection"
+      ansible.builtin.include_tasks:
+        file: detect_olm.yml
   tags:
     - install
 
@@ -28,17 +29,5 @@
       #   - olm_install_output != 0
       #   - olm_already_installed_message_output not in olm_install_output.stderr
   when: olm_needed|bool
-  tags:
-    - install
-
-- name: "Detect if OLM is present"
-  block:
-    - name: "Set OLM needed default"
-      ansible.builtin.set_fact:
-        olm_needed: true
-
-    - name: "OLM detection"
-      ansible.builtin.include_tasks:
-        file: detect_olm.yml
   tags:
     - install

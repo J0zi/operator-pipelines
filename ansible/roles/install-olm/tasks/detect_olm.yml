@@ -2,23 +2,10 @@
 - name: "OLM detection"
   block:
 
-    # - name: "Get all namespaces"
-    #   kubernetes.core.k8s_info:
-    #     kind: Namespace
-    #   register: io_olm_namespaces
-
-    # - debug:
-    #     var: io_olm_namespaces
-
     - name: "Get all pods"
       kubernetes.core.k8s_info:
         kind: Pod
-        # name: "olm-operator"
-        # namespace: olm
       register: io_olm_pods
-
-    - debug:
-        var: io_olm_pods
 
     - name: "Extract 'resources'"
       ansible.builtin.set_fact:
@@ -28,13 +15,13 @@
       ansible.builtin.include_tasks:
         file: "detect_olm_version.yml"
       loop: "{{ pod_list_extended }}"
-      #   loop_var: operator_data
 
-    - debug:
-        var: iom_olm_operator_name
-
-    - debug:
-        var: iom_olm_operator_namespace
+    - name: ""
+      ansible.builtin.set_fact:
+        olm_is_running: false
+      when: 
+        - iom_olm_operator_name is defined
+        - iom_olm_operator_name| length >0
 
     - name: "Get OLM version from iom_olm_operator_name"
       kubernetes.core.k8s_exec:
@@ -42,15 +29,23 @@
         pod: "{{ iom_olm_operator_name }}"
         command: olm --version
       register: olm_version_detected_output
+      when:
+        - olm_is_running is defined
+        - olm_is_running|bool
 
-    - debug:
-        var: (olm_version_detected_output.stdout_lines|first).split('v')[2]
 
-    - pause:
+    - name: "Set OLM detected version"
+      ansible.builtin.set_fact:
+        olm_version_detected: "v{{ (olm_version_detected_output.stdout_lines|first).split('v')[2] }}"
+      when:
+        - olm_is_running is defined
+        - olm_is_running|bool
 
-    - name: "OLM is not needed"
+    - name: "OLM is not needed, when existing {{ olm_version_detected }} is defined and correct"
       ansible.builtin.set_fact:
         olm_needed: false
-      when: "'olm-operator' in io_pod_list"
+      when: 
+        - olm_version_detected is defined
+        - olm_version_detected == olm_version
   tags:
     - install

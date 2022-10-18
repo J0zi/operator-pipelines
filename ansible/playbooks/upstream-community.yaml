@@ -16,12 +16,12 @@
     PATH: "{{ op_bin_dir }}:{{ ansible_env.PATH }}"
 
   tasks:
-    - name: Debug detection REMOVE
-      ansible.builtin.include_role:
-        name: install-olm
-        tasks_from: detect_olm
-      tags:
-        - always
+    # - name: Debug detection REMOVE
+    #   ansible.builtin.include_role:
+    #     name: install-olm
+    #     tasks_from: detect_olm
+    #   tags:
+    #     - always
 
     - name: "Upstream community base"
       import_role:
@@ -38,13 +38,21 @@
         - install
         - verify
 
-    - debug:
-        var: kubeconfig
-
     - name: "Install kind cluster"
       include_role:
         name: install-kind-cluster
       when: kubeconfig is undefined or kubeconfig | length == 0
+      tags:
+        - clean
+        - install
+        - verify
+        - kind-install
+
+    - name: "Check cluster"
+      ansible.builtin.include_role:
+        name: install-kind-cluster
+        tasks_from: verify_cluster.yml
+      when: kubeconfig is defined or kubeconfig | length > 0
       tags:
         - clean
         - install
@@ -82,3 +90,7 @@
       tags:
         - never
         - kind-delete
+      
+    - name: "Report status"
+      debug:
+        var: community_final_report

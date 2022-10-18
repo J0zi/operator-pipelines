@@ -17,17 +17,36 @@
     - name: "OLM detection"
       ansible.builtin.include_tasks:
         file: detect_olm.yml
-  tags:
-    - install
 
-- name: "Install OLM"
-  block:
+    - name: "Remove OLM"
+      ansible.builtin.command: "{{ op_bin_dir }}/{{ operator_sdk_binary }} olm uninstall --timeout {{ olm_installation_timeout }}"
+      environment:
+        KUBECONFIG: "{{ kubeconfig }}"
+      register: olm_removed
+      failed_when: false
+      when:
+        - olm_is_running is defined
+        - olm_is_running|bool
+        - olm_needed|bool
+
+    - name: "Report"
+      block:
+      - name: "Prepare message for final report"
+        ansible.builtin.set_fact:
+          olm_report: "Unable to uninstall OLM {{ olm_version_detected }} which is blocking installation of OLM {{ olm_version }}"
+          olm_needed: false
+
+      - name: "Add message to final report"
+        ansible.builtin.set_fact:
+          community_final_report: "{{ community_final_report | default([]) + [olm_report] }}"
+      when: 
+        - olm_removed.rc is defined
+        - olm_removed.rc != 0
+
     - name: "Installing OLM ({{ olm_version }})"
       ansible.builtin.command: "{{ op_bin_dir }}/{{ operator_sdk_binary }} olm install --version {{ olm_version }} --timeout {{ olm_installation_timeout }}"
       register: olm_install_output
-      # failed_when: 
-      #   - olm_install_output != 0
-      #   - olm_already_installed_message_output not in olm_install_output.stderr
-  when: olm_needed|bool
+      when: 
+        - olm_needed|bool
   tags:
     - install

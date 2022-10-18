@@ -32,16 +32,19 @@
     - name: "Install upstream community prerequisites"
       include_role:
         name: install-upstream-community-prerequisites
-      when: prerequisites is undefined or prerequisites|bool
+      when: prerequisites is undefined or prerequisites | bool
       tags:
         - clean
         - install
         - verify
 
+    - debug:
+        var: kubeconfig
+
     - name: "Install kind cluster"
       include_role:
         name: install-kind-cluster
-      when: kubeconfig is undefined or kubeconfig|length == 0
+      when: kubeconfig is undefined or kubeconfig | length == 0
       tags:
         - clean
         - install

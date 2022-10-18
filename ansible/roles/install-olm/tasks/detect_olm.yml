@@ -11,17 +11,32 @@
       ansible.builtin.set_fact:
         pod_list_extended: "{{ io_olm_pods.resources|list }}"
 
+    - debug:
+        var: pod_list_extended
+
     - name: "Loop over running operators"
       ansible.builtin.include_tasks:
         file: "detect_olm_version.yml"
       loop: "{{ pod_list_extended }}"
 
-    - name: ""
+    - debug:
+        var: iom_olm_operator_name
+
+    - name: "Set OLM as not running"
       ansible.builtin.set_fact:
-        olm_is_running: false
+        olm_is_running: true
       when: 
         - iom_olm_operator_name is defined
         - iom_olm_operator_name| length >0
+
+    - debug:
+        var: iom_olm_operator_namespace
+
+    - debug:
+        var: iom_olm_operator_name
+
+    - debug:
+        var: olm_is_running
 
     - name: "Get OLM version from iom_olm_operator_name"
       kubernetes.core.k8s_exec:
@@ -33,13 +48,33 @@
         - olm_is_running is defined
         - olm_is_running|bool
 
+    - debug:
+        var: olm_version_detected_output.stdout_lines|first
+
+    - debug:
+        var: "(olm_version_detected_output.stdout_lines|first).split(': ')"
+
+    - pause:
 
     - name: "Set OLM detected version"
       ansible.builtin.set_fact:
-        olm_version_detected: "v{{ (olm_version_detected_output.stdout_lines|first).split('v')[2] }}"
+        olm_version_detected: "{{ (olm_version_detected_output.stdout_lines|first).split(': ')[1] }}"
+        # olm_version_detected: "v{{ (olm_version_detected_output.stdout_lines|first).split('v')[2] }}"
       when:
         - olm_is_running is defined
         - olm_is_running|bool
+
+    - name: "Prepend 'v' to {{ olm_version_detected }}"
+      ansible.builtin.set_fact:
+        olm_version_detected: "v{{ olm_version_detected }}"
+      when:
+        - olm_is_running is defined
+        - olm_is_running|bool
+        - "'v' not in olm_version_detected"
+
+    # - name: "Set OLM detected version"
+    #   ansible.builtin.set_fact:
+    #     olm_version_detected
 
     - name: "OLM is not needed, when existing {{ olm_version_detected }} is defined and correct"
       ansible.builtin.set_fact:

@@ -9,6 +9,7 @@
     registry_cert_dir: "{{ op_work_dir }}/certs"
     run_cleanup: false
     oc_namespace: default
+    kubeconfig_default: "~/.kube/config"
 
   environment:
     # User has to do 'export SSL_CERT_DIR=$HOME/.op/certs' when running in rootless mode
@@ -16,13 +17,6 @@
     PATH: "{{ op_bin_dir }}:{{ ansible_env.PATH }}"
 
   tasks:
-    # - name: Debug detection REMOVE
-    #   ansible.builtin.include_role:
-    #     name: install-olm
-    #     tasks_from: detect_olm
-    #   tags:
-    #     - always
-
     - name: "Upstream community base"
       import_role:
         name: upstream-community-base
@@ -59,6 +53,11 @@
         - verify
         - kind-install
 
+    - name: "Set default kubeconfig because needed for k8s module"
+      ansible.builtin.set_fact:
+        kubeconfig: "{{ kubeconfig_default }}"
+      when: kubeconfig is not defined or kubeconfig | length == 0
+
     - name: "Install OLM"
       include_role:
         name: install-olm
@@ -91,6 +90,11 @@
         - never
         - kind-delete
       
-    - name: "Report status"
+    - name: "Report community status"
       debug:
         var: community_final_report
+      when: 
+        - community_final_report is defined
+        - community_final_report|length > 0
+      tags:
+        - always

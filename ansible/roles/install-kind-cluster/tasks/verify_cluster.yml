@@ -1,17 +1,6 @@
 ---
 - name: "Verify cluster availability"
   block:
-    - name: "Verify cluster"
-      kubernetes.core.k8s_cluster_info:
-      register: api_status_register
-      failed_when: false
-      when: kubeconfig is not defined or kubeconfig|length == 0
-
-    - name: "Set cluster staus"
-      ansible.builtin.set_fact:
-        api_status: api_status_register
-      when: kubeconfig is not defined or kubeconfig|length == 0
-
     - name: "Verify cluster with kubeconfig"
       kubernetes.core.k8s_cluster_info:
         kubeconfig: "{{ kubeconfig }}"
@@ -21,12 +10,6 @@
         - kubeconfig is defined 
         - kubeconfig|length > 0
 
-    - name: "Set cluster staus with kubeconfig"
-      ansible.builtin.set_fact:
-        api_status: api_status_register
-      when: 
-        - kubeconfig is defined 
-        - kubeconfig|length > 0
 
     - name: "Failing when cluster is not running"
       ansible.builtin.fail:

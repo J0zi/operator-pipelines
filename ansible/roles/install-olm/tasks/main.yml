@@ -31,22 +31,22 @@
 
     - name: "Report"
       block:
-      - name: "Prepare message for final report"
-        ansible.builtin.set_fact:
-          olm_report: "Unable to uninstall OLM {{ olm_version_detected }} which is blocking installation of OLM {{ olm_version }}"
-          olm_needed: false
+        - name: "Prepare message for final report"
+          ansible.builtin.set_fact:
+            olm_report: "Unable to uninstall OLM {{ olm_version_detected }} which is blocking installation of OLM {{ olm_version }}"
+            olm_needed: false
 
-      - name: "Add message to final report"
-        ansible.builtin.set_fact:
-          community_final_report: "{{ community_final_report | default([]) + [olm_report] }}"
-      when: 
+        - name: "Add message to final report"
+          ansible.builtin.set_fact:
+            community_final_report: "{{ community_final_report | default([]) + [olm_report] }}"
+      when:
         - olm_removed.rc is defined
         - olm_removed.rc != 0
 
     - name: "Installing OLM ({{ olm_version }})"
       ansible.builtin.command: "{{ op_bin_dir }}/{{ operator_sdk_binary }} olm install --version {{ olm_version }} --timeout {{ olm_installation_timeout }}"
       register: olm_install_output
-      when: 
+      when:
         - olm_needed|bool
   tags:
     - install

@@ -6,8 +6,8 @@
         kubeconfig: "{{ kubeconfig }}"
       register: api_status
       failed_when: false
-      when: 
-        - kubeconfig is defined 
+      when:
+        - kubeconfig is defined
         - kubeconfig|length > 0
 
 

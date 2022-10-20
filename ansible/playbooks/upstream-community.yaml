@@ -89,11 +89,11 @@
       tags:
         - never
         - kind-delete
-      
+
     - name: "Report community status"
       debug:
         var: community_final_report
-      when: 
+      when:
         - community_final_report is defined
         - community_final_report|length > 0
       tags:

@@ -25,7 +25,7 @@
     - name: "Set OLM as not running"
       ansible.builtin.set_fact:
         olm_is_running: true
-      when: 
+      when:
         - iom_olm_operator_name is defined
         - iom_olm_operator_name| length >0
 
